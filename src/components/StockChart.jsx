@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
 import axios from "axios";
 import dayjs from "dayjs";
+
 import finnHubToken from "../secrets";
 
 function StockChart(props) {
@@ -26,16 +27,11 @@ function StockChart(props) {
 		xaxis: {
 			type: "categories",
 			axisTicks: {
-				color: "#646464"
+				show: false
 			},
 			tickPlacement: "on",
 			tickAmount: 5,
-			labels: {
-				show: false,
-				formatter: function (time) {
-					return dayjs(time).format("dd HH:mm");
-				}
-			},
+			labels: {},
 			axisBorder: {
 				show: false
 			}
@@ -44,7 +40,7 @@ function StockChart(props) {
 			tickAmount: 4,
 			labels: {
 				formatter: function (val) {
-					return String(val);
+					return "$" + (val < 100 ? val : Math.round(val));
 				},
 				style: {
 					colors: "#d8d8d8"
@@ -68,21 +64,7 @@ function StockChart(props) {
 		tooltip: {
 			theme: "dark",
 			y: {
-				formatter: function (
-					value,
-					{ series, seriesIndex, dataPointIndex }
-				) {
-					return "$" + series[0][dataPointIndex];
-				},
-				title: {
-					formatter: function (
-						value,
-						{ series, seriesIndex, dataPointIndex }
-					) {
-						const time = options.xaxis.categories[dataPointIndex];
-						return dayjs(time).format("ddd HH:mm ");
-					}
-				}
+				title: {}
 			},
 			x: {
 				show: false
@@ -109,36 +91,59 @@ function StockChart(props) {
 		}
 	]);
 
+	function formatTime(time) {
+		switch (props.period) {
+			case "day":
+				return dayjs(time).format("ddd HH:mm");
+			case "week":
+				return dayjs(time).format("ddd HH:mm");
+			case "month":
+				return dayjs(time).format("MMM DD");
+			case "year":
+				return dayjs(time).format("YYYY MMM DD");
+			default:
+				return "date:";
+		}
+	}
+
 	useEffect(() => {
 		if (props.times === undefined) return;
 		axios
 			.get(
-				`https://finnhub.io/api/v1/stock/candle?symbol=TSLA&resolution=${props.resolution}&from=${props.times.min}&to=${props.times.max}&token=${finnHubToken}&adjusted=false`
+				`https://finnhub.io/api/v1/stock/candle?symbol=${props.symbol}&resolution=${props.resolution}&from=${props.times.min}&to=${props.times.max}&token=${finnHubToken}&adjusted=false`
 			)
 			.then(res => {
+				if (res.data.s === "no_data") {
+					throw new Error("No data received");
+				}
+
 				setChartReady(false);
+
 				setSeries(prev => {
-					prev[0].data =
-						props.period === "day"
-							? res.data.c.slice(-380, -1)
-							: props.period === "week"
-							? res.data.c.filter((val, index) => index % 2 === 0)
-							: res.data.c;
+					prev[0].data = res.data.c;
 					return prev;
 				});
 				setOptions(prev => {
-					prev.xaxis.categories =
-						props.period === "day"
-							? res.data.t.map(time => time * 1000).slice(-380, -1)
-							: props.period === "week"
-							? res.data.t.filter((val, index) => index % 2 === 0)
-							: res.data.t.map(time => time * 1000);
+					prev.xaxis.categories = res.data.t.map(time => time * 1000);
+					prev.tooltip.y.title.formatter = function (
+						value,
+						{ dataPointIndex }
+					) {
+						const time = options.xaxis.categories[dataPointIndex];
+						return formatTime(time);
+					};
+					prev.xaxis.labels.formatter = function (time, index) {
+						return formatTime(index);
+					};
 					return prev;
 				});
 				setChartReady(true);
 			})
-			.catch(err => console.log(err));
-	}, [props.times]);
+			.catch(err => {
+				console.log(err);
+				alert("There was an unexpected error.");
+			});
+	}, [props.times, props.symbol]);
 
 	return (
 		<div className="chart-container">
