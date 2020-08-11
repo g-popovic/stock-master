@@ -6,6 +6,9 @@ import dayjs from "dayjs";
 import finnHubToken from "../secrets";
 
 function StockChart(props) {
+	const risingColors = { fill: "#46CB54", bg: "#39EF76" };
+	const droppingColors = { fill: "#FC7474", bg: "#D32323" };
+
 	const [chartReady, setChartReady] = useState(false);
 
 	const [options, setOptions] = useState({
@@ -17,9 +20,12 @@ function StockChart(props) {
 			height: "100%",
 			toolbar: false
 		},
-		colors: ["#fC7474"],
+		colors: [risingColors.fill],
 		dataLabels: {
 			enabled: false
+		},
+		grid: {
+			borderColor: "rgba(255, 255, 255, 0.3)"
 		},
 		stroke: {
 			curve: "straight"
@@ -27,13 +33,22 @@ function StockChart(props) {
 		xaxis: {
 			type: "categories",
 			axisTicks: {
-				show: false
+				show: true,
+				color: "rgba(255, 255, 255, 0.3)"
 			},
 			tickPlacement: "on",
-			tickAmount: 5,
-			labels: {},
+			labels: {
+				show: true,
+				style: {
+					colors: "#d8d8d8"
+				},
+				rotate: 0
+			},
 			axisBorder: {
 				show: false
+			},
+			tooltip: {
+				enabled: false
 			}
 		},
 		yaxis: {
@@ -47,16 +62,16 @@ function StockChart(props) {
 				}
 			},
 			axisTicks: {
-				color: "#ffff00"
+				show: false
 			}
 		},
 		fill: {
-			colors: ["#D32323"],
+			colors: [risingColors.bg],
 			type: "gradient",
 			gradient: {
 				shade: "dark",
 				shadeIntensity: 0,
-				opacityFrom: 0.5,
+				opacityFrom: 0.45,
 				opacityTo: 0.15,
 				stops: [30, 120]
 			}
@@ -125,6 +140,7 @@ function StockChart(props) {
 				});
 				setOptions(prev => {
 					prev.xaxis.categories = res.data.t.map(time => time * 1000);
+
 					prev.tooltip.y.title.formatter = function (
 						value,
 						{ dataPointIndex }
@@ -132,9 +148,29 @@ function StockChart(props) {
 						const time = options.xaxis.categories[dataPointIndex];
 						return formatTime(time);
 					};
-					prev.xaxis.labels.formatter = function (time, index) {
-						return formatTime(index);
+
+					prev.xaxis.labels.formatter = function (value) {
+						const index = prev.xaxis.categories.indexOf(value);
+						return index === 0 ||
+							index === prev.xaxis.categories.length - 1 ||
+							index === prev.xaxis.categories.length / 2
+							? formatTime(value)
+							: "";
 					};
+
+					const isRising =
+						res.data.c[0] < res.data.c[res.data.c.length - 1];
+
+					props.setIsRising(isRising);
+
+					prev.colors = [
+						isRising ? risingColors.fill : droppingColors.fill
+					];
+
+					prev.fill.colors = [
+						isRising ? risingColors.bg : droppingColors.bg
+					];
+
 					return prev;
 				});
 				setChartReady(true);

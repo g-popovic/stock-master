@@ -125,7 +125,13 @@ function InteractionContainer(props) {
 				<h1>{props.symbol}</h1>
 				<h2>
 					Current:{" "}
-					<span className="price price-drop">${props.currentPrice}</span>
+					<span
+						className={
+							"price " +
+							(props.isRising ? "price-rise" : "price-drop")
+						}>
+						${props.currentPrice}
+					</span>
 				</h2>
 			</div>
 		</div>

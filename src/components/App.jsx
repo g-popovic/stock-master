@@ -10,6 +10,7 @@ function App() {
 	const [period, setPeriod] = useState("week");
 	const [times, setTimes] = useState();
 	const [symbol, setSymbol] = useState("TSLA");
+	const [isRising, setIsRising] = useState(false);
 
 	const [currentPrice, setCurrentPrice] = useState("00.00");
 
@@ -71,12 +72,14 @@ function App() {
 				setSymbol={setSymbol}
 				symbol={symbol}
 				currentPrice={currentPrice}
+				isRising={isRising}
 			/>
 			<StockChart
 				times={times}
 				period={period}
 				resolution={getResolution(period)}
 				symbol={symbol}
+				setIsRising={setIsRising}
 			/>
 		</>
 	);
