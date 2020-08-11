@@ -40,7 +40,8 @@ function StockChart(props) {
 			labels: {
 				show: true,
 				style: {
-					colors: "#d8d8d8"
+					colors: "#d8d8d8",
+					fontSize: "11"
 				},
 				rotate: 0
 			},
@@ -93,7 +94,7 @@ function StockChart(props) {
 				breakpoint: 1000,
 				options: {
 					chart: {
-						height: 360
+						height: 280
 					}
 				}
 			}
@@ -153,7 +154,7 @@ function StockChart(props) {
 						const index = prev.xaxis.categories.indexOf(value);
 						return index === 0 ||
 							index === prev.xaxis.categories.length - 1 ||
-							index === prev.xaxis.categories.length / 2
+							index === Math.round(prev.xaxis.categories.length / 2)
 							? formatTime(value)
 							: "";
 					};

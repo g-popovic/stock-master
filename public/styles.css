@@ -200,9 +200,9 @@ nav h2 {
 }
 
 .chart-container {
-	width: 88%;
+	width: 95%;
 	position: relative;
-	right: 0.5rem;
+	right: -0.5rem;
 	margin: 1rem auto 0;
 }
 
@@ -247,7 +247,7 @@ nav h2 {
 	/*############## CHART ##############*/
 
 	.chart-container {
-		width: 80%;
+		width: 81%;
 		height: 55vh;
 	}
 }

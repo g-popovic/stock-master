@@ -21,7 +21,6 @@ function App() {
 			min: min,
 			max: max
 		});
-		console.log(min, max);
 	}, [period]);
 
 	function getTimeDifference(currentPeriod) {
